@@ -15,13 +15,14 @@ contract Deploy is Script {
 
         // Deploy VestingWallet example (adjust constructor args as needed)
         VestingWallet vesting = new VestingWallet(
+            address(token),
             msg.sender,
-            uint64(block.timestamp),
-            address(token)
+            uint64(block.timestamp) + 1 * 24 * 60 * 60,
+            uint64(block.timestamp) + 7 * 24 * 60 * 60
         );
 
         // Deploy AdminRouter
-        AdminRouter admin = new AdminRouter();
+        AdminRouter admin = new AdminRouter(payable(token), msg.sender, msg.sender);
 
         vm.stopBroadcast();
     }

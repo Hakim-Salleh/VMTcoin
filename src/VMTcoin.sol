@@ -122,7 +122,7 @@ contract VMTcoin is
         emit DonationReceived(msg.sender, amount, "ERC20");
     }
 
-    function _transfer(address from, address to, uint256 amount) internal override whenNotPaused notBlacklisted(from) notBlacklisted(to) {
+    function transfer(address from, address to, uint256 amount) internal whenNotPaused notBlacklisted(from) notBlacklisted(to) {
         uint256 tax = (amount * TRANSFER_TAX_RATE) / 10000; // 0.1%
         uint256 burnAmount = (amount * BURN_RATE) / 10000; // 0.01%
         uint256 sendAmount = amount - tax - burnAmount;
