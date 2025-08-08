@@ -1,14 +1,13 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.19;
 
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/PausableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
-import "@openzeppelin/contracts-upgradeable/utils/ReentrancyGuardUpgradeable.sol";
-
-import "@openzeppelin/contracts/interfaces/IERC20.sol";
+import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20PermitUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/utils/PausableUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/access/AccessControlUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/token/ERC20/extensions/ERC20BurnableUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/proxy/utils/UUPSUpgradeable.sol";
+import "openzeppelin-contracts-upgradeable/contracts/utils/ReentrancyGuardUpgradeable.sol";
+import "openzeppelin-contracts/contracts/token/ERC20/IERC20.sol";
 
 /// @title VMTcoin
 /// @author Jakcy LoveCode
@@ -66,6 +65,8 @@ contract VMTcoin is
 
         daoTreasury = _daoTreasury;
         backupAdmin = backup;
+        _mint(initialOwner, 1_000_000 ether);
+        // _mint(address(this), 1_000_000 ether);
     }
 
     function mint(address to, uint256 amount) external onlyRole(MINTER_ROLE) {
@@ -122,14 +123,29 @@ contract VMTcoin is
         emit DonationReceived(msg.sender, amount, "ERC20");
     }
 
-    function transfer(address from, address to, uint256 amount) internal whenNotPaused notBlacklisted(from) notBlacklisted(to) {
+    // function transfer(address from, address to, uint256 amount) internal whenNotPaused notBlacklisted(from) notBlacklisted(to) {
+    //     uint256 tax = (amount * TRANSFER_TAX_RATE) / 10000; // 0.1%
+    //     uint256 burnAmount = (amount * BURN_RATE) / 10000; // 0.01%
+    //     uint256 sendAmount = amount - tax - burnAmount;
+
+    //     super._transfer(from, daoTreasury, tax);
+    //     _burn(from, burnAmount);
+    //     super._transfer(from, to, sendAmount);
+    // }
+
+    function transfer(address to, uint256 amount) public override whenNotPaused notBlacklisted(_msgSender()) notBlacklisted(to) returns (bool) {
         uint256 tax = (amount * TRANSFER_TAX_RATE) / 10000; // 0.1%
         uint256 burnAmount = (amount * BURN_RATE) / 10000; // 0.01%
         uint256 sendAmount = amount - tax - burnAmount;
 
-        super._transfer(from, daoTreasury, tax);
-        _burn(from, burnAmount);
-        super._transfer(from, to, sendAmount);
+        // super._transfer(from, daoTreasury, tax);
+        // _burn(from, burnAmount);
+        // super._transfer(from, to, sendAmount);
+        super._transfer(_msgSender(), daoTreasury, tax);
+        _burn(_msgSender(), burnAmount);
+        super._transfer(_msgSender(), to, sendAmount);
+
+        return true;
     }
 
     function _authorizeUpgrade(address newImplementation) internal override onlyRole(DEFAULT_ADMIN_ROLE) {}
